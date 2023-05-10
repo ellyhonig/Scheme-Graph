@@ -61,22 +61,63 @@
 
 
 (define(makeEdgeList) '())
+
 (define (makeEdge From to)(cons From (list To)))
+
 (define (From edge)(car edge))
+
 (define (To edge)(cadr edge))
-(define (Index AdjList)(car AdjList))   
+
+(define (Index AdjListBlock)(car AdjListBlock))   
+
+
 
 (define (addVertexToIndex arry vertex)
+
   (cond((null? arry)(list vertex))
-       ((equal? (car arry)vertex) (cons (car arry)(cdr arry)))
+
+       ((equal? (car arry) vertex) (cons (car arry)(cdr arry)))
+
        (else (cons (car arry)(addVertexToIndex (cdr arry) vertex)))))
 
+
+
                                   
+
 (define (addEdge edge edgeList)
+
   (cond ((null? edgeList)(list edge))
+
         (else (cons edge edgeList))))
 
-(define (makeAdjList edgeList answer-so-far)
+(define (firstBlockInAdjList adjList) (car adjList))
+(define (restOfAdjList adjList) (cdr adjList))
+
+(define (addEdgeToAdjList edge adjList IndexSelector VertexSelector) ;;needs directed version
+  (cond((null? adjList)(list(IndexSelector edge)(list (VertexSelector edge))))
+       ((equal? (IndexSelector edge)(Index (firstBlockInAdjList adjList)))(cons (addVertexToIndex (firstBlockInAdjList adjList) (VertexSelector edge))(restOfAdjList adjList)))
+       (else (cons(firstBlockInAdjList adjList)(addEdgeToAdjList edge (restOfAdjList adjList)))))
+
+       
+(define (MakefirstBlockInAdjList edge isDirected) ;;needs directed version
+ (if isDirected (list(list (To edge)(list (From edge)))) (addEdgeToAdjList edge (list(list (To edge)(list (From edge)) From To)))))
+  
+(define (firstBlockInEdgeList edgeList) (car edgeList))
+(define (restOfEdgeList edgeList) (cdr edgeList))
+  
+(define (makeAdjList edgeList answer-so-far isDirected)
+
   (cond((null? edgeList) answer-so-far)
-       ((null? answer-so-far)(list (To (car edgeList)) (list (From (car edgeList)))))
-       ((equal? (Index (car answer-so-far))(To(car edgeList)))(makeAdjList edgeList addVertex to
+
+       ((null? answer-so-far) (makeAdjList (restOfEdgeList edgeList) (MakefirstBlockInAdjList (firstBlockInEdgeList edgeList)) isDirected))
+
+       ((equal? (Index (firstBlockInAdjList answer-so-far) )  (To(firstBlockInEdgeList edgeList)))
+        (if isDirected
+                      (makeAdjList (restOfEdgeList edgeList) (addEdgeToAdjList(firstBlockInEdgeList edgeList) answer-so-far From To))isDirected)
+                      (makeAdjList (restOfEdgeList edgeList) (addEdgeToAdjList (firstBlockInEdgeList edgeList) (addEdgeToAdjList(firstBlockInEdgeList edgeList) answer-so-far From To) To From)isDirected) )
+
+       ((equal?(Index (firstBlockInAdjList answer-so-far)) (From(firstBlockInEdgeList edgeList)))
+        (if isDirected
+            (makeAdjList (restOfEdgeList edgeList) answer-so-far isDirected)
+            (makeAdjList (restOfEdgeList edgeList) (addEdgeToAdjList(firstBlockInEdgeList edgeList) answer-so-far From To))isDirected))
+       (else (makeAdjList (restOfEdgeList edgeList) answer-so-far isDirected))))
