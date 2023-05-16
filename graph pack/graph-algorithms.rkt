@@ -25,7 +25,7 @@
            
            ; Print the visited vertices
            (display "visited: ")
-           (display-visited VisitedStack)
+           (display-visited (insert VisitedStack (front-of-queue queue)))
            (newline)
            
            ; Perform BFS
